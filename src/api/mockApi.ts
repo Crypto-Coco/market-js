@@ -124,11 +124,7 @@ export class MockAPI {
     console.log("retries", retries);
     this.orders.push(order);
     console.log("order", order);
-    const _order = {
-      ...order,
-      fee_recipient: order.feeRecipient,
-    };
-    return orderFromJSON(_order);
+    return orderFromJSON(order);
   }
 
   /**

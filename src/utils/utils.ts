@@ -399,9 +399,9 @@ export const orderFromJSON = (order: any): Order => {
   const createdDate = new Date(`${order.created_date}Z`);
 
   const fromJSON: Order = {
-    hash: order.order_hash || order.hash,
+    hash: order.orderHash || order.hash,
     cancelledOrFinalized: order.cancelled || order.finalized,
-    markedInvalid: order.marked_invalid,
+    markedInvalid: order.markedInvalid,
     metadata: order.metadata,
     quantity: new BigNumber(order.quantity || 1),
     exchange: order.exchange,
@@ -410,44 +410,44 @@ export const orderFromJSON = (order: any): Order => {
     // Use string address to conform to Wyvern Order schema
     maker: order.maker.address,
     taker: order.taker.address,
-    makerRelayerFee: new BigNumber(order.maker_relayer_fee),
-    takerRelayerFee: new BigNumber(order.taker_relayer_fee),
-    makerProtocolFee: new BigNumber(order.maker_protocol_fee),
-    takerProtocolFee: new BigNumber(order.taker_protocol_fee),
-    makerReferrerFee: new BigNumber(order.maker_referrer_fee || 0),
-    waitingForBestCounterOrder: order.fee_recipient.address == NULL_ADDRESS,
-    feeMethod: order.fee_method,
-    feeRecipientAccount: order.fee_recipient,
-    feeRecipient: order.fee_recipient.address,
+    makerRelayerFee: new BigNumber(order.makerRelayerFee),
+    takerRelayerFee: new BigNumber(order.takerRelayerFee),
+    makerProtocolFee: new BigNumber(order.makerProtocolFee),
+    takerProtocolFee: new BigNumber(order.takerProtocolFee),
+    makerReferrerFee: new BigNumber(order.makerReferrerFee || 0),
+    waitingForBestCounterOrder: order.feeRecipient.address == NULL_ADDRESS,
+    feeMethod: order.feeMethod,
+    feeRecipientAccount: order.feeRecipient,
+    feeRecipient: order.feeRecipient.address,
     side: order.side,
-    saleKind: order.sale_kind,
+    saleKind: order.saleKind,
     target: order.target,
-    howToCall: order.how_to_call,
+    howToCall: order.howToCall,
     calldata: order.calldata,
-    replacementPattern: order.replacement_pattern,
-    staticTarget: order.static_target,
-    staticExtradata: order.static_extradata,
-    paymentToken: order.payment_token,
-    basePrice: new BigNumber(order.base_price),
+    replacementPattern: order.replacementPattern,
+    staticTarget: order.staticTarget,
+    staticExtradata: order.staticExtradata,
+    paymentToken: order.paymentToken,
+    basePrice: new BigNumber(order.basePrice),
     extra: new BigNumber(order.extra),
-    currentBounty: new BigNumber(order.current_bounty || 0),
-    currentPrice: new BigNumber(order.current_price || 0),
+    currentBounty: new BigNumber(order.currentBounty || 0),
+    currentPrice: new BigNumber(order.currentPrice || 0),
 
     createdTime: new BigNumber(Math.round(createdDate.getTime() / 1000)),
-    listingTime: new BigNumber(order.listing_time),
-    expirationTime: new BigNumber(order.expiration_time),
+    listingTime: new BigNumber(order.listingTime),
+    expirationTime: new BigNumber(order.expirationTime),
 
     salt: new BigNumber(order.salt),
     v: parseInt(order.v),
     r: order.r,
     s: order.s,
 
-    paymentTokenContract: order.payment_token_contract
-      ? tokenFromJSON(order.payment_token_contract)
+    paymentTokenContract: order.paymentTokenContract
+      ? tokenFromJSON(order.paymentTokenContract)
       : undefined,
     asset: order.asset ? assetFromJSON(order.asset) : undefined,
-    assetBundle: order.asset_bundle
-      ? assetBundleFromJSON(order.asset_bundle)
+    assetBundle: order.asset_Bundle
+      ? assetBundleFromJSON(order.assetBundle)
       : undefined,
   };
 
