@@ -1,4 +1,4 @@
-import { OpenSeaAPI } from "../api";
+import { OpenSeaAPI } from "../api/openseaApi";
 import { CK_ADDRESS, CK_RINKEBY_ADDRESS } from "../constants";
 import { Network } from "../types";
 

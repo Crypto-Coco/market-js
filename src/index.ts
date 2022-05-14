@@ -1,5 +1,5 @@
 /* eslint-disable import/no-unused-modules */
-import { OpenSeaAPI } from "./api";
+import { OpenSeaAPI } from "./api/openseaApi";
 import { OpenSeaPort } from "./seaport";
 import { Network, EventData, EventType } from "./types";
 export { orderToJSON, orderFromJSON, WyvernProtocol } from "./utils/utils";

@@ -7,7 +7,7 @@ import Web3 from "web3";
 import { WyvernProtocol } from "wyvern-js";
 import * as WyvernSchemas from "wyvern-schemas";
 import { Schema } from "wyvern-schemas/dist/types";
-import { OpenSeaAPI } from "./api";
+import { MockAPI } from "./api/mockApi";
 import {
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_ADDRESS,
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS,
@@ -145,7 +145,7 @@ export class OpenSeaPort {
   // Logger function to use when debugging
   public logger: (arg: string) => void;
   // API instance on this seaport
-  public readonly api: OpenSeaAPI;
+  public readonly api: MockAPI;
   // Extra gwei to add to the mean gas price when making transactions
   public gasPriceAddition = new BigNumber(3);
   // Multiply gas estimate by this factor when making transactions
@@ -176,13 +176,13 @@ export class OpenSeaPort {
   ) {
     // API config
     apiConfig.networkName = apiConfig.networkName || Network.Main;
-    this.api = new OpenSeaAPI(apiConfig);
+    this.api = new MockAPI();
     this._wyvernConfigOverride = apiConfig.wyvernConfig;
 
     this._networkName = apiConfig.networkName;
 
     const readonlyProvider = new Web3.providers.HttpProvider(
-      `${this.api.apiBaseUrl}/${RPC_URL_PATH}`
+      `${apiConfig.apiBaseUrl}/${RPC_URL_PATH}`
     );
 
     const useReadOnlyProvider = apiConfig.useReadOnlyProvider ?? true;
@@ -890,6 +890,8 @@ export class OpenSeaPort {
       ...hashedOrder,
       ...signature,
     };
+
+    console.log("orderWithSignature", orderWithSignature);
 
     return this.validateAndPostOrder(orderWithSignature);
   }

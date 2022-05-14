@@ -1,18 +1,9 @@
 import "isomorphic-unfetch";
 import _ from "lodash";
 import * as QueryString from "query-string";
+import { API_PATH, ORDERBOOK_PATH, ORDERBOOK_VERSION } from "../constants";
 import {
-  API_BASE_MAINNET,
-  API_BASE_RINKEBY,
-  API_PATH,
-  ORDERBOOK_PATH,
-  ORDERBOOK_VERSION,
-  SITE_HOST_MAINNET,
-  SITE_HOST_RINKEBY,
-} from "./constants";
-import {
-  Network,
-  OpenSeaAPIConfig,
+  AssetContractType,
   OpenSeaAsset,
   OpenSeaAssetBundle,
   OpenSeaAssetBundleQuery,
@@ -23,56 +14,102 @@ import {
   OrderbookResponse,
   OrderJSON,
   OrderQuery,
-} from "./types";
+  WyvernSchemaName,
+} from "../types";
 import {
   assetBundleFromJSON,
   assetFromJSON,
-  delay,
   orderFromJSON,
   tokenFromJSON,
-} from "./utils/utils";
+} from "../utils/utils";
 
-export class OpenSeaAPI {
-  /**
-   * Host url for OpenSea
-   */
-  public readonly hostUrl: string;
-  /**
-   * Base url for the API
-   */
-  public readonly apiBaseUrl: string;
-  /**
-   * Page size to use for fetching orders
-   */
+const mockPaymentTokens: OpenSeaFungibleToken = {
+  address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+  decimals: 10,
+  name: "SampleFunsibleToken",
+  symbol: "SFT",
+};
+
+const mockOpenSeaAsset: OpenSeaAsset = {
+  assetContract: {
+    address: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
+    buyerFeeBasisPoints: 0,
+    description: "sample description",
+    devBuyerFeeBasisPoints: 0,
+    devSellerFeeBasisPoints: 2,
+    imageUrl: "https://sample.image",
+    name: "hello",
+    openseaBuyerFeeBasisPoints: 1,
+    openseaSellerFeeBasisPoints: 2,
+    schemaName: WyvernSchemaName.ENSShortNameAuction,
+    sellerFeeBasisPoints: 2,
+    tokenSymbol: "SAMP",
+    type: AssetContractType.NonFungible,
+  },
+  collection: {
+    createdDate: new Date(),
+    description: "awesome collection!",
+    devBuyerFeeBasisPoints: 1,
+    devSellerFeeBasisPoints: 2,
+    displayData: {
+      data1: "data",
+    },
+    editors: ["0x53ceb15b76023fbec5bb39450214926f6aa77d2e"],
+    featured: true,
+    featuredImageUrl: "https://sample",
+    hidden: false,
+    imageUrl: "https://sample.image",
+    largeImageUrl: "https://large.image",
+    name: "Test collection",
+    openseaBuyerFeeBasisPoints: 2,
+    openseaSellerFeeBasisPoints: 2,
+    paymentTokens: [mockPaymentTokens],
+    slug: "sample",
+    stats: [],
+    traitStats: {},
+  },
+  backgroundColor: null,
+  buyOrders: [],
+  description: "good NFT",
+  externalLink: "https://Hello",
+  imagePreviewUrl: "https://preview",
+  imageUrl: "https://image",
+  imageUrlOriginal: "https://image-original",
+  imageUrlThumbnail: "https://image-thumbnail",
+  isPresale: true,
+  lastSale: null,
+  name: "MyToken #1",
+  numSales: 3,
+  openseaLink: "https://opensea.link/id/1",
+  orders: [],
+  owner: {
+    user: {
+      username: "ropital",
+    },
+    address: "0xe0ee13cd5a45e7fa140409edfc9ce17c7b11e6d2",
+    profileImgUrl: "https://ropital",
+    config: "abcde",
+  },
+  sellOrders: [],
+  tokenAddress: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
+  tokenId:
+    "12910348618308260923200348219926901280687058984330794534952861439530514639560",
+  traits: [],
+  transferFee: "3",
+  transferFeePaymentToken: mockPaymentTokens,
+};
+
+export class MockAPI {
+  private orders: OrderJSON[] = [];
+  private assets: OpenSeaAsset[] = [mockOpenSeaAsset];
+  private funsibleTokens: OpenSeaFungibleToken[] = [mockPaymentTokens];
+
   public pageSize = 20;
-  /**
-   * Logger function to use when debugging
-   */
   public logger: (arg: string) => void;
-
   private apiKey: string | undefined;
+  public readonly apiBaseUrl: string = "";
 
-  /**
-   * Create an instance of the OpenSea API
-   * @param config OpenSeaAPIConfig for setting up the API, including an optional API key, network name, and base URL
-   * @param logger Optional function for logging debug strings before and after requests are made
-   */
-  constructor(config: OpenSeaAPIConfig, logger?: (arg: string) => void) {
-    this.apiKey = config.apiKey;
-
-    switch (config.networkName) {
-      case Network.Rinkeby:
-        this.apiBaseUrl = config.apiBaseUrl || API_BASE_RINKEBY;
-        this.hostUrl = SITE_HOST_RINKEBY;
-        break;
-      case Network.Main:
-      default:
-        this.apiBaseUrl = config.apiBaseUrl || API_BASE_MAINNET;
-        this.hostUrl = SITE_HOST_MAINNET;
-        break;
-    }
-
-    // Debugging: default to nothing
+  constructor(logger?: (arg: string) => void) {
     this.logger = logger || ((arg: string) => arg);
   }
 
@@ -84,18 +121,14 @@ export class OpenSeaAPI {
    * @param retries Number of times to retry if the service is unavailable for any reason
    */
   public async postOrder(order: OrderJSON, retries = 2): Promise<Order> {
-    let json;
-    try {
-      json = (await this.post(
-        `${ORDERBOOK_PATH}/orders/post/`,
-        order
-      )) as OrderJSON;
-    } catch (error) {
-      _throwOrContinue(error, retries);
-      await delay(3000);
-      return this.postOrder(order, retries - 1);
-    }
-    return orderFromJSON(json);
+    console.log("retries", retries);
+    this.orders.push(order);
+    console.log("order", order);
+    const _order = {
+      ...order,
+      fee_recipient: order.feeRecipient,
+    };
+    return orderFromJSON(_order);
   }
 
   /**
@@ -131,9 +164,6 @@ export class OpenSeaAPI {
       const result = await this.get(`${ORDERBOOK_PATH}/exchange/`);
       return result as string;
     } catch (error) {
-      this.logger(
-        "Couldn't retrieve Wyvern exchange address for order creation"
-      );
       return null;
     }
   }
@@ -211,18 +241,15 @@ export class OpenSeaAPI {
     },
     retries = 1
   ): Promise<OpenSeaAsset> {
-    let json;
-    try {
-      json = await this.get(
-        `${API_PATH}/asset/${tokenAddress}/${tokenId || 0}/`
-      );
-    } catch (error) {
-      _throwOrContinue(error, retries);
-      await delay(1000);
-      return this.getAsset({ tokenAddress, tokenId }, retries - 1);
+    const asset = this.assets.filter((asset) => {
+      return asset.tokenId === tokenId && asset.tokenAddress === tokenAddress;
+    })[0];
+
+    if (!asset) {
+      _throwOrContinue(new Error("Asset not found"), retries);
     }
 
-    return assetFromJSON(json);
+    return asset;
   }
 
   /**
@@ -265,21 +292,17 @@ export class OpenSeaAPI {
     page = 1,
     retries = 1
   ): Promise<{ tokens: OpenSeaFungibleToken[] }> {
-    let json;
-    try {
-      json = await this.get<unknown[]>(`${API_PATH}/tokens/`, {
-        ...query,
-        limit: this.pageSize,
-        offset: (page - 1) * this.pageSize,
-      });
-    } catch (error) {
-      _throwOrContinue(error, retries);
-      await delay(1000);
-      return this.getPaymentTokens(query, page, retries - 1);
+    console.log(page, query.address);
+    const tokens = this.funsibleTokens.filter((token) => {
+      return token.address.toLowerCase() === query.address;
+    });
+
+    if (tokens.length === 0) {
+      _throwOrContinue(new Error("Payment token not found"), retries);
     }
 
     return {
-      tokens: json.map((t) => tokenFromJSON(t)),
+      tokens: tokens.map((t) => tokenFromJSON(t)),
     };
   }
 
