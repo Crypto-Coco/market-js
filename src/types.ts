@@ -552,13 +552,13 @@ export interface ComputedFees extends OpenSeaFees {
   sellerBountyBasisPoints: number;
 }
 
-interface ExchangeMetadataForAsset {
+export interface ExchangeMetadataForAsset {
   asset: WyvernAsset;
   schema: WyvernSchemaName;
   referrerAddress?: string;
 }
 
-interface ExchangeMetadataForBundle {
+export interface ExchangeMetadataForBundle {
   bundle: WyvernBundle;
   referrerAddress?: string;
 }

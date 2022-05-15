@@ -31,6 +31,8 @@ export const DEFAULT_WRAPPED_NFT_LIQUIDATION_UNISWAP_SLIPPAGE_IN_BASIS_POINTS = 
 export const CHEEZE_WIZARDS_GUILD_ADDRESS = WyvernProtocol.NULL_ADDRESS; // TODO: Update this address once Dapper has deployed their mainnet contracts
 export const CHEEZE_WIZARDS_GUILD_RINKEBY_ADDRESS =
   "0x095731b672b76b00A0b5cb9D8258CD3F6E976cB2";
+export const TEST_RINKEBY_NFT_ADDRESS =
+  "0x07a6dc6e3f1120ca03658d473d10aee3af5f8abb";
 export const CHEEZE_WIZARDS_BASIC_TOURNAMENT_ADDRESS =
   WyvernProtocol.NULL_ADDRESS; // TODO: Update this address once Dapper has deployed their mainnet contracts
 export const CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS =

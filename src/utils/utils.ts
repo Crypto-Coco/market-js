@@ -206,42 +206,40 @@ export const confirmTransaction = async (web3: Web3, txHash: string) => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const assetFromJSON = (asset: any): OpenSeaAsset => {
-  const isAnimated = asset.image_url && asset.image_url.endsWith(".gif");
-  const isSvg = asset.image_url && asset.image_url.endsWith(".svg");
+  const isAnimated = asset.imageUrl && asset.imageUrl.endsWith(".gif");
+  const isSvg = asset.imageUrl && asset.imageUrl.endsWith(".svg");
   const fromJSON: OpenSeaAsset = {
-    tokenId: asset.token_id.toString(),
-    tokenAddress: asset.asset_contract.address,
+    tokenId: asset.tokenId.toString(),
+    tokenAddress: asset.assetContract.address,
     name: asset.name,
     description: asset.description,
     owner: asset.owner,
-    assetContract: assetContractFromJSON(asset.asset_contract),
+    assetContract: assetContractFromJSON(asset.assetContract),
     collection: collectionFromJSON(asset.collection),
     orders: asset.orders ? asset.orders.map(orderFromJSON) : null,
-    sellOrders: asset.sell_orders ? asset.sell_orders.map(orderFromJSON) : null,
-    buyOrders: asset.buy_orders ? asset.buy_orders.map(orderFromJSON) : null,
+    sellOrders: asset.sellOrders ? asset.sellOrders.map(orderFromJSON) : null,
+    buyOrders: asset.buyOrders ? asset.buyOrders.map(orderFromJSON) : null,
 
-    isPresale: asset.is_presale,
+    isPresale: asset.isPresale,
     // Don't use previews if it's a special image
     imageUrl:
       isAnimated || isSvg
-        ? asset.image_url
-        : asset.image_preview_url || asset.image_url,
-    imagePreviewUrl: asset.image_preview_url,
-    imageUrlOriginal: asset.image_original_url,
-    imageUrlThumbnail: asset.image_thumbnail_url,
+        ? asset.imageUrl
+        : asset.imagePreviewUrl || asset.imageUrl,
+    imagePreviewUrl: asset.imagePreviewUrl,
+    imageUrlOriginal: asset.imageOriginalUrl,
+    imageUrlThumbnail: asset.imageThumbnailUrl,
 
-    externalLink: asset.external_link,
+    externalLink: asset.externalLink,
     openseaLink: asset.permalink,
     traits: asset.traits,
-    numSales: asset.num_sales,
-    lastSale: asset.last_sale ? assetEventFromJSON(asset.last_sale) : null,
-    backgroundColor: asset.background_color
-      ? `#${asset.background_color}`
-      : null,
+    numSales: asset.numSales,
+    lastSale: asset.lastSale ? assetEventFromJSON(asset.lastSale) : null,
+    backgroundColor: asset.backgroundColor ? `#${asset.backgroundColor}` : null,
 
-    transferFee: asset.transfer_fee ? makeBigNumber(asset.transfer_fee) : null,
-    transferFeePaymentToken: asset.transfer_fee_payment_token
-      ? tokenFromJSON(asset.transfer_fee_payment_token)
+    transferFee: asset.transferFee ? makeBigNumber(asset.transferFee) : null,
+    transferFeePaymentToken: asset.transferFeePaymentToken
+      ? tokenFromJSON(asset.transferFeePaymentToken)
       : null,
   };
   // If orders were included, put them in sell/buy order groups
@@ -259,15 +257,15 @@ export const assetFromJSON = (asset: any): OpenSeaAsset => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const assetEventFromJSON = (assetEvent: any): AssetEvent => {
   return {
-    eventType: assetEvent.event_type,
-    eventTimestamp: assetEvent.event_timestamp,
-    auctionType: assetEvent.auction_type,
-    totalPrice: assetEvent.total_price,
+    eventType: assetEvent.eventType,
+    eventTimestamp: assetEvent.eventTimestamp,
+    auctionType: assetEvent.auctionType,
+    totalPrice: assetEvent.totalPrice,
     transaction: assetEvent.transaction
       ? transactionFromJSON(assetEvent.transaction)
       : null,
-    paymentToken: assetEvent.payment_token
-      ? tokenFromJSON(assetEvent.payment_token)
+    paymentToken: assetEvent.paymentToken
+      ? tokenFromJSON(assetEvent.paymentToken)
       : null,
   };
 };
@@ -275,14 +273,14 @@ export const assetEventFromJSON = (assetEvent: any): AssetEvent => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const transactionFromJSON = (transaction: any): Transaction => {
   return {
-    fromAccount: accountFromJSON(transaction.from_account),
-    toAccount: accountFromJSON(transaction.to_account),
-    createdDate: new Date(`${transaction.created_date}Z`),
-    modifiedDate: new Date(`${transaction.modified_date}Z`),
-    transactionHash: transaction.transaction_hash,
-    transactionIndex: transaction.transaction_index,
-    blockNumber: transaction.block_number,
-    blockHash: transaction.block_hash,
+    fromAccount: accountFromJSON(transaction.fromAccount),
+    toAccount: accountFromJSON(transaction.toAccount),
+    createdDate: new Date(`${transaction.createdDate}Z`),
+    modifiedDate: new Date(`${transaction.modifiedDate}Z`),
+    transactionHash: transaction.transactionHash,
+    transactionIndex: transaction.transactionIndex,
+    blockNumber: transaction.blockNumber,
+    blockHash: transaction.blockHash,
     timestamp: new Date(`${transaction.timestamp}Z`),
   };
 };
@@ -292,7 +290,7 @@ export const accountFromJSON = (account: any): OpenSeaAccount => {
   return {
     address: account.address,
     config: account.config,
-    profileImgUrl: account.profile_img_url,
+    profileImgUrl: account.profileImgUrl,
     user: account.user ? userFromJSON(account.user) : null,
   };
 };
@@ -333,20 +331,19 @@ export const assetContractFromJSON = (
   return {
     name: asset_contract.name,
     description: asset_contract.description,
-    type: asset_contract.asset_contract_type,
-    schemaName: asset_contract.schema_name,
+    type: asset_contract.assetContractType,
+    schemaName: asset_contract.schemaName,
     address: asset_contract.address,
     tokenSymbol: asset_contract.symbol,
-    buyerFeeBasisPoints: +asset_contract.buyer_fee_basis_points,
-    sellerFeeBasisPoints: +asset_contract.seller_fee_basis_points,
-    openseaBuyerFeeBasisPoints: +asset_contract.opensea_buyer_fee_basis_points,
-    openseaSellerFeeBasisPoints:
-      +asset_contract.opensea_seller_fee_basis_points,
-    devBuyerFeeBasisPoints: +asset_contract.dev_buyer_fee_basis_points,
-    devSellerFeeBasisPoints: +asset_contract.dev_seller_fee_basis_points,
-    imageUrl: asset_contract.image_url,
-    externalLink: asset_contract.external_link,
-    wikiLink: asset_contract.wiki_link,
+    buyerFeeBasisPoints: +asset_contract.buyerFeeBasisPoints,
+    sellerFeeBasisPoints: +asset_contract.sellerFeeBasisPoints,
+    openseaBuyerFeeBasisPoints: +asset_contract.openseaBuyerFeeBasisPoints,
+    openseaSellerFeeBasisPoints: +asset_contract.openseaSellerFeeBasisPoints,
+    devBuyerFeeBasisPoints: +asset_contract.devBuyerFeeBasisPoints,
+    devSellerFeeBasisPoints: +asset_contract.devSellerFeeBasisPoints,
+    imageUrl: asset_contract.imageUrl,
+    externalLink: asset_contract.externalLink,
+    wikiLink: asset_contract.wikiLink,
   };
 };
 
@@ -362,20 +359,20 @@ export const collectionFromJSON = (collection: any): OpenSeaCollection => {
     editors: collection.editors,
     hidden: collection.hidden,
     featured: collection.featured,
-    featuredImageUrl: collection.featured_image_url,
-    displayData: collection.display_data,
-    paymentTokens: (collection.payment_tokens || []).map(tokenFromJSON),
-    openseaBuyerFeeBasisPoints: +collection.opensea_buyer_fee_basis_points,
-    openseaSellerFeeBasisPoints: +collection.opensea_seller_fee_basis_points,
-    devBuyerFeeBasisPoints: +collection.dev_buyer_fee_basis_points,
-    devSellerFeeBasisPoints: +collection.dev_seller_fee_basis_points,
-    payoutAddress: collection.payout_address,
-    imageUrl: collection.image_url,
-    largeImageUrl: collection.large_image_url,
+    featuredImageUrl: collection.featuredImageUrl,
+    displayData: collection.displayData,
+    paymentTokens: (collection.paymentTokens || []).map(tokenFromJSON),
+    openseaBuyerFeeBasisPoints: +collection.openseaBuyerFeeBasisPoints,
+    openseaSellerFeeBasisPoints: +collection.openseaSellerFeeBasisPoints,
+    devBuyerFeeBasisPoints: +collection.devBuyerFeeBasisPoints,
+    devSellerFeeBasisPoints: +collection.devSellerFeeBasisPoints,
+    payoutAddress: collection.payoutAddress,
+    imageUrl: collection.imageUrl,
+    largeImageUrl: collection.largeImageUrl,
     stats: collection.stats,
     traitStats: collection.traits as OpenSeaTraitStats,
-    externalLink: collection.external_url,
-    wikiLink: collection.wiki_url,
+    externalLink: collection.externalUrl,
+    wikiLink: collection.wikiUrl,
   };
 };
 
@@ -386,9 +383,9 @@ export const tokenFromJSON = (token: any): OpenSeaFungibleToken => {
     symbol: token.symbol,
     decimals: token.decimals,
     address: token.address,
-    imageUrl: token.image_url,
-    ethPrice: token.eth_price,
-    usdPrice: token.usd_price,
+    imageUrl: token.imageUrl,
+    ethPrice: token.ethPrice,
+    usdPrice: token.usdPrice,
   };
 
   return fromJSON;
