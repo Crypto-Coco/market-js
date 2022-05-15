@@ -1,9 +1,11 @@
 import "isomorphic-unfetch";
 import _ from "lodash";
 import * as QueryString from "query-string";
-import { API_PATH, ORDERBOOK_PATH, ORDERBOOK_VERSION } from "../constants";
+import { rinkebyCustomSchema } from "wyvern-schemas/dist/schemas/rinkeby/rinkebyCustom";
+import { API_PATH, TEST_RINKEBY_NFT_ADDRESS } from "../constants";
 import {
   AssetContractType,
+  ExchangeMetadataForAsset,
   OpenSeaAsset,
   OpenSeaAssetBundle,
   OpenSeaAssetBundleQuery,
@@ -11,9 +13,9 @@ import {
   OpenSeaFungibleToken,
   OpenSeaFungibleTokenQuery,
   Order,
-  OrderbookResponse,
   OrderJSON,
   OrderQuery,
+  OrderSide,
   WyvernSchemaName,
 } from "../types";
 import {
@@ -32,13 +34,13 @@ const mockPaymentTokens: OpenSeaFungibleToken = {
 
 const mockOpenSeaAsset: OpenSeaAsset = {
   assetContract: {
-    address: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
+    address: TEST_RINKEBY_NFT_ADDRESS,
     buyerFeeBasisPoints: 0,
-    description: "sample description",
+    description: rinkebyCustomSchema.description,
     devBuyerFeeBasisPoints: 0,
     devSellerFeeBasisPoints: 2,
     imageUrl: "https://sample.image",
-    name: "hello",
+    name: rinkebyCustomSchema.name,
     openseaBuyerFeeBasisPoints: 1,
     openseaSellerFeeBasisPoints: 2,
     schemaName: WyvernSchemaName.ENSShortNameAuction,
@@ -60,7 +62,7 @@ const mockOpenSeaAsset: OpenSeaAsset = {
     hidden: false,
     imageUrl: "https://sample.image",
     largeImageUrl: "https://large.image",
-    name: "Test collection",
+    name: rinkebyCustomSchema.name,
     openseaBuyerFeeBasisPoints: 2,
     openseaSellerFeeBasisPoints: 2,
     paymentTokens: [mockPaymentTokens],
@@ -72,13 +74,17 @@ const mockOpenSeaAsset: OpenSeaAsset = {
   buyOrders: [],
   description: "good NFT",
   externalLink: "https://Hello",
-  imagePreviewUrl: "https://preview",
-  imageUrl: "https://image",
-  imageUrlOriginal: "https://image-original",
-  imageUrlThumbnail: "https://image-thumbnail",
+  imagePreviewUrl:
+    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
+  imageUrl:
+    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
+  imageUrlOriginal:
+    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
+  imageUrlThumbnail:
+    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
   isPresale: true,
   lastSale: null,
-  name: "MyToken #1",
+  name: "FAJC #4911",
   numSales: 3,
   openseaLink: "https://opensea.link/id/1",
   orders: [],
@@ -91,7 +97,7 @@ const mockOpenSeaAsset: OpenSeaAsset = {
     config: "abcde",
   },
   sellOrders: [],
-  tokenAddress: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
+  tokenAddress: TEST_RINKEBY_NFT_ADDRESS,
   tokenId:
     "12910348618308260923200348219926901280687058984330794534952861439530514639560",
   traits: [],
@@ -100,7 +106,7 @@ const mockOpenSeaAsset: OpenSeaAsset = {
 };
 
 export class MockAPI {
-  private orders: OrderJSON[] = [];
+  private orders: Order[] = [];
   private assets: OpenSeaAsset[] = [mockOpenSeaAsset];
   private funsibleTokens: OpenSeaFungibleToken[] = [mockPaymentTokens];
 
@@ -121,10 +127,10 @@ export class MockAPI {
    * @param retries Number of times to retry if the service is unavailable for any reason
    */
   public async postOrder(order: OrderJSON, retries = 2): Promise<Order> {
-    console.log("retries", retries);
-    this.orders.push(order);
-    console.log("order", order);
-    return orderFromJSON(order);
+    console.log("query", retries);
+    const _order = orderFromJSON(order);
+    this.orders.push(_order);
+    return _order;
   }
 
   /**
@@ -156,12 +162,7 @@ export class MockAPI {
    * Simply return null in case API doesn't give us a good response
    */
   public async getOrderCreateWyvernExchangeAddress(): Promise<string | null> {
-    try {
-      const result = await this.get(`${ORDERBOOK_PATH}/exchange/`);
-      return result as string;
-    } catch (error) {
-      return null;
-    }
+    return "v2.2";
   }
   /**
    * Get an order from the orderbook, throwing if none is found.
@@ -169,23 +170,15 @@ export class MockAPI {
    *  on the `OrderJSON` type is supported
    */
   public async getOrder(query: OrderQuery): Promise<Order> {
-    const result = await this.get(`${ORDERBOOK_PATH}/orders/`, {
-      limit: 1,
-      ...query,
-    });
+    const order = this.orders.filter((order) => {
+      return query.salt === order.salt.toString();
+    })[0];
 
-    let orderJSON;
-    if (ORDERBOOK_VERSION == 0) {
-      const json = result as OrderJSON[];
-      orderJSON = json[0];
-    } else {
-      const json = result as OrderbookResponse;
-      orderJSON = json.orders[0];
+    if (!order) {
+      throw new Error("Order not found");
     }
-    if (!orderJSON) {
-      throw new Error(`Not found: no matching order found`);
-    }
-    return orderFromJSON(orderJSON);
+
+    return orderFromJSON(order);
   }
 
   /**
@@ -200,25 +193,11 @@ export class MockAPI {
     query: OrderQuery = {},
     page = 1
   ): Promise<{ orders: Order[]; count: number }> {
-    const result = await this.get(`${ORDERBOOK_PATH}/orders/`, {
-      limit: this.pageSize,
-      offset: (page - 1) * this.pageSize,
-      ...query,
+    console.log("query", query, page);
+    const orders = this.orders.map((order) => {
+      return orderFromJSON(order);
     });
-
-    if (ORDERBOOK_VERSION == 0) {
-      const json = result as OrderJSON[];
-      return {
-        orders: json.map((j) => orderFromJSON(j)),
-        count: json.length,
-      };
-    } else {
-      const json = result as OrderbookResponse;
-      return {
-        orders: json.orders.map((j) => orderFromJSON(j)),
-        count: json.count,
-      };
-    }
+    return { orders, count: orders.length };
   }
 
   /**
@@ -241,6 +220,26 @@ export class MockAPI {
       return asset.tokenId === tokenId && asset.tokenAddress === tokenAddress;
     })[0];
 
+    asset.buyOrders = this.orders.filter((order) => {
+      order.metadata = order.metadata as ExchangeMetadataForAsset;
+
+      return (
+        order.side === OrderSide.Buy &&
+        order.metadata.asset.id === asset.tokenId &&
+        order.metadata.asset.address === asset.tokenAddress
+      );
+    });
+
+    asset.sellOrders = this.orders.filter((order) => {
+      order.metadata = order.metadata as ExchangeMetadataForAsset;
+
+      return (
+        order.side === OrderSide.Sell &&
+        order.metadata.asset.id === asset.tokenId &&
+        order.metadata.asset.address === asset.tokenAddress
+      );
+    });
+
     if (!asset) {
       _throwOrContinue(new Error("Asset not found"), retries);
     }
@@ -258,21 +257,16 @@ export class MockAPI {
     next: string | undefined;
     previous: string | undefined;
   }> {
-    const json = await this.get<{
-      estimated_count: number;
-      assets: unknown[];
-      next: string | undefined;
-      previous: string | undefined;
-    }>(`${API_PATH}/assets/`, {
-      limit: this.pageSize,
-      ...query,
+    console.log("query", query);
+    const assets = this.assets.map((asset) => {
+      return assetFromJSON(asset);
     });
 
     return {
-      assets: json.assets.map((j) => assetFromJSON(j)),
-      next: json.next,
-      previous: json.previous,
-      estimatedCount: json.estimated_count,
+      assets,
+      next: "3",
+      previous: "1",
+      estimatedCount: assets.length,
     };
   }
 
