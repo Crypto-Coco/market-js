@@ -1,11 +1,14 @@
 import "isomorphic-unfetch";
 import _ from "lodash";
 import * as QueryString from "query-string";
-import { rinkebyCustomSchema } from "wyvern-schemas/dist/schemas/rinkeby/rinkebyCustom";
-import { API_PATH } from "../constants";
 import {
-  AssetContractType,
-  ExchangeMetadataForAsset,
+  API_BASE_RINKEBY,
+  API_PATH,
+  ORDERBOOK_PATH,
+  ORDERBOOK_VERSION,
+} from "../constants";
+import {
+  OpenSeaAPIConfig,
   OpenSeaAsset,
   OpenSeaAssetBundle,
   OpenSeaAssetBundleQuery,
@@ -13,106 +16,47 @@ import {
   OpenSeaFungibleToken,
   OpenSeaFungibleTokenQuery,
   Order,
+  OrderbookResponse,
   OrderJSON,
   OrderQuery,
-  OrderSide,
-  WyvernSchemaName,
 } from "../types";
+import { MarketApi } from "../types/backend";
 import {
   assetBundleFromJSON,
   assetFromJSON,
+  delay,
   orderFromJSON,
   tokenFromJSON,
 } from "../utils/utils";
 
-const mockPaymentTokens: OpenSeaFungibleToken = {
-  address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
-  decimals: 10,
-  name: "SampleFunsibleToken",
-  symbol: "SFT",
-};
-
-const mockOpenSeaAsset: OpenSeaAsset = {
-  assetContract: {
-    address: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
-    buyerFeeBasisPoints: 0,
-    description: rinkebyCustomSchema.description,
-    devBuyerFeeBasisPoints: 0,
-    devSellerFeeBasisPoints: 2,
-    imageUrl: "https://sample.image",
-    name: rinkebyCustomSchema.name,
-    openseaBuyerFeeBasisPoints: 1,
-    openseaSellerFeeBasisPoints: 2,
-    schemaName: WyvernSchemaName.ENSShortNameAuction,
-    sellerFeeBasisPoints: 2,
-    tokenSymbol: "SAMP",
-    type: AssetContractType.NonFungible,
-  },
-  collection: {
-    createdDate: new Date(),
-    description: "awesome collection!",
-    devBuyerFeeBasisPoints: 1,
-    devSellerFeeBasisPoints: 2,
-    editors: ["0x53ceb15b76023fbec5bb39450214926f6aa77d2e"],
-    featured: true,
-    featuredImageUrl: "https://sample",
-    hidden: false,
-    imageUrl: "https://sample.image",
-    largeImageUrl: "https://large.image",
-    name: rinkebyCustomSchema.name,
-    openseaBuyerFeeBasisPoints: 2,
-    openseaSellerFeeBasisPoints: 2,
-    paymentTokens: [mockPaymentTokens],
-    slug: "sample",
-    stats: [],
-    traitStats: {},
-  },
-  backgroundColor: null,
-  buyOrders: [],
-  description: "good NFT",
-  externalLink: "https://Hello",
-  imagePreviewUrl:
-    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
-  imageUrl:
-    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
-  imageUrlOriginal:
-    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
-  imageUrlThumbnail:
-    "https://lh3.googleusercontent.com/0_AE71GRW6iUL6aFqV2OLBBpZmyoTRQGSwOUFGrdfKqSbk3aeLMsHrtg7k_5vb4dl7QsoW_HSsES34cWbEaA4Dq1O6uKVC-8E41FVPo=w335",
-  isPresale: true,
-  lastSale: null,
-  name: "FAJC #4911",
-  numSales: 3,
-  openseaLink: "https://opensea.link/id/1",
-  orders: [],
-  owner: {
-    user: {
-      username: "ropital",
-    },
-    address: "0xe0ee13cd5a45e7fa140409edfc9ce17c7b11e6d2",
-    profileImgUrl: "https://ropital",
-    config: "abcde",
-  },
-  sellOrders: [],
-  tokenAddress: "0x53ceb15b76023fbec5bb39450214926f6aa77d2e",
-  tokenId:
-    "12910348618308260923200348219926901280687058984330794534952861439530514639560",
-  traits: [],
-  transferFee: "3",
-  transferFeePaymentToken: mockPaymentTokens,
-};
-
-export class MockAPI {
-  private orders: Order[] = [];
-  private assets: OpenSeaAsset[] = [mockOpenSeaAsset];
-  private funsibleTokens: OpenSeaFungibleToken[] = [mockPaymentTokens];
-
+export class MarketAPI {
+  /**
+   * Page size to use for fetching orders
+   */
   public pageSize = 20;
+  /**
+   * Logger function to use when debugging
+   */
   public logger: (arg: string) => void;
-  private apiKey: string | undefined;
-  public readonly apiBaseUrl: string = "";
 
-  constructor(logger?: (arg: string) => void) {
+  api: MarketApi;
+
+  private apiKey: string | undefined;
+
+  /**
+   * Create an instance of the OpenSea API
+   * @param config OpenSeaAPIConfig for setting up the API, including an optional API key, network name, and base URL
+   * @param logger Optional function for logging debug strings before and after requests are made
+   */
+  constructor(config: OpenSeaAPIConfig, logger?: (arg: string) => void) {
+    this.apiKey = config.apiKey;
+
+    this.api = new MarketApi({
+      BASE: config.orderbookBaseUrl || API_BASE_RINKEBY,
+      TOKEN: config.token,
+    });
+
+    // Debugging: default to nothing
     this.logger = logger || ((arg: string) => arg);
   }
 
@@ -124,10 +68,25 @@ export class MockAPI {
    * @param retries Number of times to retry if the service is unavailable for any reason
    */
   public async postOrder(order: OrderJSON, retries = 2): Promise<Order> {
-    console.log("query", retries);
-    const _order = orderFromJSON(order);
-    this.orders.push(_order);
-    return _order;
+    let json;
+    try {
+      console.log("postorder", order);
+      json = await this.api.orderService.orderControllerCreate({
+        ...order,
+        makerAddress: order.maker,
+        takerAddress: order.taker,
+        paymentTokenAddress: order.paymentToken,
+        listingTime: Number(order.listingTime),
+        expirationTime: Number(order.expirationTime),
+        quantity: Number(order.quantity),
+      });
+    } catch (error) {
+      _throwOrContinue(error, retries);
+      await delay(3000);
+      return this.postOrder(order, retries - 1);
+    }
+    console.log(json);
+    return orderFromJSON(json);
   }
 
   /**
@@ -159,7 +118,15 @@ export class MockAPI {
    * Simply return null in case API doesn't give us a good response
    */
   public async getOrderCreateWyvernExchangeAddress(): Promise<string | null> {
-    return "v2.2";
+    try {
+      const result = await this.get(`${ORDERBOOK_PATH}/exchange/`);
+      return result as string;
+    } catch (error) {
+      this.logger(
+        "Couldn't retrieve Wyvern exchange address for order creation"
+      );
+      return null;
+    }
   }
   /**
    * Get an order from the orderbook, throwing if none is found.
@@ -167,15 +134,23 @@ export class MockAPI {
    *  on the `OrderJSON` type is supported
    */
   public async getOrder(query: OrderQuery): Promise<Order> {
-    const order = this.orders.filter((order) => {
-      return query.salt === order.salt.toString();
-    })[0];
+    const result = await this.get(`${ORDERBOOK_PATH}/orders/`, {
+      limit: 1,
+      ...query,
+    });
 
-    if (!order) {
-      throw new Error("Order not found");
+    let orderJSON;
+    if (ORDERBOOK_VERSION == 0) {
+      const json = result as OrderJSON[];
+      orderJSON = json[0];
+    } else {
+      const json = result as OrderbookResponse;
+      orderJSON = json.orders[0];
     }
-
-    return orderFromJSON(order);
+    if (!orderJSON) {
+      throw new Error(`Not found: no matching order found`);
+    }
+    return orderFromJSON(orderJSON);
   }
 
   /**
@@ -190,11 +165,25 @@ export class MockAPI {
     query: OrderQuery = {},
     page = 1
   ): Promise<{ orders: Order[]; count: number }> {
-    console.log("query", query, page);
-    const orders = this.orders.map((order) => {
-      return orderFromJSON(order);
+    const result = await this.get(`${ORDERBOOK_PATH}/orders/`, {
+      limit: this.pageSize,
+      offset: (page - 1) * this.pageSize,
+      ...query,
     });
-    return { orders, count: orders.length };
+
+    if (ORDERBOOK_VERSION == 0) {
+      const json = result as OrderJSON[];
+      return {
+        orders: json.map((j) => orderFromJSON(j)),
+        count: json.length,
+      };
+    } else {
+      const json = result as OrderbookResponse;
+      return {
+        orders: json.orders.map((j) => orderFromJSON(j)),
+        count: json.count,
+      };
+    }
   }
 
   /**
@@ -213,36 +202,21 @@ export class MockAPI {
     },
     retries = 1
   ): Promise<OpenSeaAsset> {
-    console.log(tokenAddress, tokenId);
-    const asset = this.assets.filter((asset) => {
-      return asset.tokenId === tokenId && asset.tokenAddress === tokenAddress;
-    })[0];
-
-    asset.buyOrders = this.orders.filter((order) => {
-      order.metadata = order.metadata as ExchangeMetadataForAsset;
-
-      return (
-        order.side === OrderSide.Buy &&
-        order.metadata.asset.id === asset.tokenId &&
-        order.metadata.asset.address === asset.tokenAddress
+    let asset;
+    try {
+      const res = await this.api.assetService.assetControllerGet(
+        tokenAddress,
+        String(tokenId)
       );
-    });
-
-    asset.sellOrders = this.orders.filter((order) => {
-      order.metadata = order.metadata as ExchangeMetadataForAsset;
-
-      return (
-        order.side === OrderSide.Sell &&
-        order.metadata.asset.id === asset.tokenId &&
-        order.metadata.asset.address === asset.tokenAddress
-      );
-    });
-
-    if (!asset) {
-      _throwOrContinue(new Error("Asset not found"), retries);
+      asset = res.asset;
+      console.log(asset);
+    } catch (error) {
+      _throwOrContinue(error, retries);
+      await delay(1000);
+      return this.getAsset({ tokenAddress, tokenId }, retries - 1);
     }
 
-    return asset;
+    return assetFromJSON(asset);
   }
 
   /**
@@ -255,16 +229,22 @@ export class MockAPI {
     next: string | undefined;
     previous: string | undefined;
   }> {
-    console.log("query", query);
-    const assets = this.assets.map((asset) => {
-      return assetFromJSON(asset);
+    // const {} = await this.api.assetService.assetControllerList()
+    const json = await this.get<{
+      estimated_count: number;
+      assets: unknown[];
+      next: string | undefined;
+      previous: string | undefined;
+    }>(`${API_PATH}/assets/`, {
+      limit: this.pageSize,
+      ...query,
     });
 
     return {
-      assets,
-      next: "3",
-      previous: "1",
-      estimatedCount: assets.length,
+      assets: json.assets.map((j) => assetFromJSON(j)),
+      next: json.next,
+      previous: json.previous,
+      estimatedCount: json.estimated_count,
     };
   }
 
@@ -280,17 +260,28 @@ export class MockAPI {
     page = 1,
     retries = 1
   ): Promise<{ tokens: OpenSeaFungibleToken[] }> {
-    console.log(page, query.address);
-    const tokens = this.funsibleTokens.filter((token) => {
-      return token.address.toLowerCase() === query.address;
-    });
-
-    if (tokens.length === 0) {
-      _throwOrContinue(new Error("Payment token not found"), retries);
+    let funsibleTokens;
+    try {
+      const res =
+        await this.api.funsibleTokenController.funsibleTokenControllerList(
+          page,
+          query.limit,
+          query.address
+        );
+      funsibleTokens = res.funsibleTokens;
+      // json = await this.get<unknown[]>(`${API_PATH}/tokens/`, {
+      //   ...query,
+      //   limit: this.pageSize,
+      //   offset: (page - 1) * this.pageSize,
+      // });
+    } catch (error) {
+      _throwOrContinue(error, retries);
+      await delay(1000);
+      return this.getPaymentTokens(query, page, retries - 1);
     }
 
     return {
-      tokens: tokens.map((t) => tokenFromJSON(t)),
+      tokens: funsibleTokens.map((t) => tokenFromJSON(t)),
     };
   }
 
@@ -392,8 +383,8 @@ export class MockAPI {
    * @param opts RequestInit opts, similar to Fetch API
    */
   private async _fetch(apiPath: string, opts: RequestInit = {}) {
-    const apiBase = this.apiBaseUrl;
-    const apiKey = this.apiKey;
+    const apiBase = "";
+    const apiKey = "";
     const finalUrl = apiBase + apiPath;
     const finalOpts = {
       ...opts,
@@ -410,9 +401,7 @@ export class MockAPI {
       )}...`
     );
 
-    return fetch(finalUrl, finalOpts).then(async (res) =>
-      this._handleApiResponse(res)
-    );
+    return fetch(finalUrl).then(async (res) => this._handleApiResponse(res));
   }
 
   private async _handleApiResponse(response: Response) {

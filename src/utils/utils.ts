@@ -349,7 +349,7 @@ export const assetContractFromJSON = (
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const collectionFromJSON = (collection: any): OpenSeaCollection => {
-  const createdDate = new Date(`${collection.created_date}Z`);
+  const createdDate = new Date(`${collection.createdAt}Z`);
 
   return {
     createdDate,
@@ -360,10 +360,9 @@ export const collectionFromJSON = (collection: any): OpenSeaCollection => {
     hidden: collection.hidden,
     featured: collection.featured,
     featuredImageUrl: collection.featuredImageUrl,
-    displayData: collection.displayData,
     paymentTokens: (collection.paymentTokens || []).map(tokenFromJSON),
-    openseaBuyerFeeBasisPoints: +collection.openseaBuyerFeeBasisPoints,
-    openseaSellerFeeBasisPoints: +collection.openseaSellerFeeBasisPoints,
+    openseaBuyerFeeBasisPoints: +collection.buyerFeeBasisPoints,
+    openseaSellerFeeBasisPoints: +collection.sellerFeeBasisPoints,
     devBuyerFeeBasisPoints: +collection.devBuyerFeeBasisPoints,
     devSellerFeeBasisPoints: +collection.devSellerFeeBasisPoints,
     payoutAddress: collection.payoutAddress,
@@ -371,8 +370,8 @@ export const collectionFromJSON = (collection: any): OpenSeaCollection => {
     largeImageUrl: collection.largeImageUrl,
     stats: collection.stats,
     traitStats: collection.traits as OpenSeaTraitStats,
-    externalLink: collection.externalUrl,
-    wikiLink: collection.wikiUrl,
+    externalLink: collection.websiteUrl,
+    wikiLink: collection.websiteUrl,
   };
 };
 
@@ -393,7 +392,7 @@ export const tokenFromJSON = (token: any): OpenSeaFungibleToken => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const orderFromJSON = (order: any): Order => {
-  const createdDate = new Date(`${order.created_date}Z`);
+  const createdDate = new Date(`${order.createdAt}Z`);
 
   const fromJSON: Order = {
     hash: order.orderHash || order.hash,
@@ -405,17 +404,17 @@ export const orderFromJSON = (order: any): Order => {
     makerAccount: order.maker,
     takerAccount: order.taker,
     // Use string address to conform to Wyvern Order schema
-    maker: order.maker.address,
-    taker: order.taker.address,
+    maker: order.makerAddress,
+    taker: order.takerAddress,
     makerRelayerFee: new BigNumber(order.makerRelayerFee),
     takerRelayerFee: new BigNumber(order.takerRelayerFee),
     makerProtocolFee: new BigNumber(order.makerProtocolFee),
     takerProtocolFee: new BigNumber(order.takerProtocolFee),
     makerReferrerFee: new BigNumber(order.makerReferrerFee || 0),
-    waitingForBestCounterOrder: order.feeRecipient.address == NULL_ADDRESS,
+    waitingForBestCounterOrder: order.feeRecipientAddress == NULL_ADDRESS,
     feeMethod: order.feeMethod,
     feeRecipientAccount: order.feeRecipient,
-    feeRecipient: order.feeRecipient.address,
+    feeRecipient: order.feeRecipientAddress,
     side: order.side,
     saleKind: order.saleKind,
     target: order.target,
