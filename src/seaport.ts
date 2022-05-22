@@ -7,7 +7,7 @@ import Web3 from "web3";
 import { WyvernProtocol } from "wyvern-js";
 import * as WyvernSchemas from "wyvern-schemas";
 import { Schema } from "wyvern-schemas/dist/types";
-import { MockAPI } from "./api/mockApi";
+import { MarketAPI } from "./api/marketApi";
 import {
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_ADDRESS,
   CHEEZE_WIZARDS_BASIC_TOURNAMENT_RINKEBY_ADDRESS,
@@ -145,7 +145,7 @@ export class OpenSeaPort {
   // Logger function to use when debugging
   public logger: (arg: string) => void;
   // API instance on this seaport
-  public readonly api: MockAPI;
+  public readonly api: MarketAPI;
   // Extra gwei to add to the mean gas price when making transactions
   public gasPriceAddition = new BigNumber(3);
   // Multiply gas estimate by this factor when making transactions
@@ -176,7 +176,7 @@ export class OpenSeaPort {
   ) {
     // API config
     apiConfig.networkName = apiConfig.networkName || Network.Main;
-    this.api = new MockAPI();
+    this.api = new MarketAPI(apiConfig, logger);
     this._wyvernConfigOverride = apiConfig.wyvernConfig;
 
     this._networkName = apiConfig.networkName;
@@ -891,7 +891,7 @@ export class OpenSeaPort {
       ...signature,
     };
 
-    console.log("orderWithSignature", orderWithSignature);
+    console.log("bauvbrua", orderWithSignature);
 
     return this.validateAndPostOrder(orderWithSignature);
   }
@@ -1413,7 +1413,7 @@ export class OpenSeaPort {
       let approvedAddr: string | undefined;
       try {
         approvedAddr = await (tokenContract as ERC721v3Abi).methods
-          .getApproved(tokenId)
+          .getApproved(1)
           .call();
         if (typeof approvedAddr === "string" && approvedAddr == "0x") {
           // Geth compatibility
@@ -1476,6 +1476,7 @@ export class OpenSeaPort {
           });
         }
       );
+      console.log(txHash);
 
       await this._confirmTransaction(
         txHash,
@@ -2134,6 +2135,7 @@ export class OpenSeaPort {
     let maxTotalBountyBPS = DEFAULT_MAX_BOUNTY;
 
     if (asset) {
+      console.log(asset.collection);
       openseaBuyerFeeBasisPoints = +asset.collection.openseaBuyerFeeBasisPoints;
       openseaSellerFeeBasisPoints =
         +asset.collection.openseaSellerFeeBasisPoints;
@@ -3386,6 +3388,7 @@ export class OpenSeaPort {
       });
     }
 
+    console.log(order);
     // Check sell parameters
     const sellValid = await this._wyvernProtocol.wyvernExchange
       .validateOrderParameters_(
@@ -3418,6 +3421,7 @@ export class OpenSeaPort {
         order.staticExtradata
       )
       .callAsync({ from: accountAddress });
+
     if (!sellValid) {
       console.error(order);
       throw new Error(
@@ -3547,12 +3551,14 @@ export class OpenSeaPort {
         // Verify that the taker owns the asset
         let isOwner;
         try {
-          isOwner = await this._ownsAssetOnChain({
-            accountAddress,
-            proxyAddress,
-            wyAsset,
-            schemaName,
-          });
+          // TODO: LazyMintの場合の対応
+          // isOwner = await this._ownsAssetOnChain({
+          //   accountAddress,
+          //   proxyAddress,
+          //   wyAsset,
+          //   schemaName,
+          // });
+          isOwner = true;
         } catch (error) {
           // let it through for assets we don't support yet
           isOwner = true;

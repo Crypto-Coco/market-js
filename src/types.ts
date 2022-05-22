@@ -97,7 +97,9 @@ export interface OpenSeaAPIConfig {
   networkName?: Network;
   apiKey?: string;
   apiBaseUrl?: string;
+  orderbookBaseUrl?: string;
   useReadOnlyProvider?: boolean;
+  token?: string;
   // Sent to WyvernJS
   gasPrice?: BigNumber;
 
@@ -322,8 +324,6 @@ export interface OpenSeaCollection extends OpenSeaFees {
   featuredImageUrl: string;
   // Object with stats about the collection
   stats: object;
-  // Data about displaying cards
-  displayData: object;
   // Tokens allowed for this collection
   paymentTokens: OpenSeaFungibleToken[];
   // Address for dev fee payouts
