@@ -39,10 +39,12 @@ export type CreateOrderRequestBody = {
   salt: string;
   makerReferrerFee: string;
   englishAuctionReservePrice?: string;
+  waitingForBestCounterOrder: boolean;
   quantity: number;
   metadata: any;
   nonce?: number;
   v?: number;
   r?: string;
   s?: string;
+  exchange: string;
 };

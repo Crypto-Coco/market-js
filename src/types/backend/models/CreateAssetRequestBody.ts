@@ -3,10 +3,6 @@
 
 export type CreateAssetRequestBody = {
   /**
-   * 作成者アドレス
-   */
-  creatorAddress: string;
-  /**
    * 名前
    */
   name: string;

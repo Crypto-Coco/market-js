@@ -33,7 +33,7 @@ export type Order = {
   calldata: string;
   replacementPattern: string;
   staticTarget: string;
-  staticExtradata: string;
+  staticExtradata?: string;
   /**
    * 支払いに用いるトークンのアドレス
    */
@@ -47,7 +47,7 @@ export type Order = {
   expirationTime: number;
   salt: string;
   makerReferrerFee: string;
-  englishAuctionReservePrice: string;
+  englishAuctionReservePrice?: string;
   quantity: number;
   metadata: any;
   nonce: number;
@@ -56,6 +56,7 @@ export type Order = {
   s: string;
   currentPrice: string;
   currentBounty: number;
+  exchange: string;
   cancelOrFinalized: boolean;
   waitingForBestCounterOrder: boolean;
   markedInvalid: boolean;

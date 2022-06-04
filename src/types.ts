@@ -640,6 +640,7 @@ export interface OrderJSON extends Partial<ECSignature> {
   makerReferrerFee: string;
   quantity: string;
   englishAuctionReservePrice: string | undefined;
+  waitingForBestCounterOrder?: boolean;
 
   // createdTime is undefined when order hasn't been posted yet
   createdTime?: number | string;
@@ -653,6 +654,7 @@ export type RawWyvernOrderJSON = Omit<
   | "makerReferrerFee"
   | "quantity"
   | "englishAuctionReservePrice"
+  | "waitingForBestCounterOrder"
   | "createdTime"
   | "metadata"
   | "hash"

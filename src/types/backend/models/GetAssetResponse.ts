@@ -1,8 +1,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 
-import type { Asset } from "./Asset";
+import type { AssetDetail } from "./AssetDetail";
 
 export type GetAssetResponse = {
-  asset: Asset;
+  asset: AssetDetail;
 };

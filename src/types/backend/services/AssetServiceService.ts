@@ -4,6 +4,7 @@
 import type { CreateAssetRequestBody } from "../models/CreateAssetRequestBody";
 import type { CreateAssetResponse } from "../models/CreateAssetResponse";
 import type { GetAssetResponse } from "../models/GetAssetResponse";
+import type { GetAssetResponseForSdk } from "../models/GetAssetResponseForSdk";
 import type { ListAssetsResponse } from "../models/ListAssetsResponse";
 import type { UpdateAssetRequestBody } from "../models/UpdateAssetRequestBody";
 import type { UpdateAssetResponse } from "../models/UpdateAssetResponse";
@@ -16,19 +17,99 @@ export class AssetServiceService {
 
   /**
    * アセットの単体取得
-   * @param assetId
+   * @param tokenAddress
+   * @param tokenId
    * @returns GetAssetResponse
    * @throws ApiError
    */
-  public assetControllerGetById(
-    assetId: string
+  public assetControllerGet(
+    tokenAddress: string,
+    tokenId: number
   ): CancelablePromise<GetAssetResponse> {
     return this.httpRequest.request({
       method: "GET",
-      url: "/assets/{assetId}",
+      url: "/assets/{tokenAddress}/{tokenId}",
       path: {
-        assetId: assetId,
+        tokenAddress: tokenAddress,
+        tokenId: tokenId,
       },
+    });
+  }
+
+  /**
+   * アセットの単体取得
+   * @param tokenAddress
+   * @param tokenId
+   * @returns GetAssetResponseForSdk
+   * @throws ApiError
+   */
+  public assetControllerGetForSdk(
+    tokenAddress: string,
+    tokenId: string
+  ): CancelablePromise<GetAssetResponseForSdk> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/assets/{tokenAddress}/{tokenId}/sdk",
+      path: {
+        tokenAddress: tokenAddress,
+        tokenId: tokenId,
+      },
+    });
+  }
+
+  /**
+   * アセットの一覧取得
+   * @param page ページネーション: ページ番号
+   * @param perPage ページネーション: 1ページのデータ数
+   * @param userId
+   * @param sortBy
+   * @param isCreator
+   * @param minPrice
+   * @param maxPrice
+   * @param saleKinds
+   * @returns ListAssetsResponse
+   * @throws ApiError
+   */
+  public assetControllerList(
+    page: number = 1,
+    perPage: number = 10,
+    userId?: string,
+    sortBy?: string,
+    isCreator?: boolean,
+    minPrice?: number,
+    maxPrice?: number,
+    saleKinds?: Array<string>
+  ): CancelablePromise<ListAssetsResponse> {
+    return this.httpRequest.request({
+      method: "GET",
+      url: "/assets",
+      query: {
+        page: page,
+        perPage: perPage,
+        userId: userId,
+        sortBy: sortBy,
+        isCreator: isCreator,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        saleKinds: saleKinds,
+      },
+    });
+  }
+
+  /**
+   * アセットの新規作成
+   * @param requestBody
+   * @returns CreateAssetResponse
+   * @throws ApiError
+   */
+  public assetControllerCreate(
+    requestBody: CreateAssetRequestBody
+  ): CancelablePromise<CreateAssetResponse> {
+    return this.httpRequest.request({
+      method: "POST",
+      url: "/assets",
+      body: requestBody,
+      mediaType: "application/json",
     });
   }
 
@@ -67,65 +148,6 @@ export class AssetServiceService {
       path: {
         assetId: assetId,
       },
-    });
-  }
-
-  /**
-   * アセットの単体取得
-   * @param tokenAddress
-   * @param tokenId
-   * @returns GetAssetResponse
-   * @throws ApiError
-   */
-  public assetControllerGet(
-    tokenAddress: string,
-    tokenId: string
-  ): CancelablePromise<GetAssetResponse> {
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/assets/{tokenAddress}/{tokenId}",
-      path: {
-        tokenAddress: tokenAddress,
-        tokenId: tokenId,
-      },
-    });
-  }
-
-  /**
-   * アセットの一覧取得
-   * @param page ページネーション: ページ番号
-   * @param perPage ページネーション: 1ページのデータ数
-   * @returns ListAssetsResponse
-   * @throws ApiError
-   */
-  public assetControllerList(
-    page: number = 1,
-    perPage: number = 10
-  ): CancelablePromise<ListAssetsResponse> {
-    return this.httpRequest.request({
-      method: "GET",
-      url: "/assets",
-      query: {
-        page: page,
-        perPage: perPage,
-      },
-    });
-  }
-
-  /**
-   * アセットの新規作成
-   * @param requestBody
-   * @returns CreateAssetResponse
-   * @throws ApiError
-   */
-  public assetControllerCreate(
-    requestBody: CreateAssetRequestBody
-  ): CancelablePromise<CreateAssetResponse> {
-    return this.httpRequest.request({
-      method: "POST",
-      url: "/assets",
-      body: requestBody,
-      mediaType: "application/json",
     });
   }
 }

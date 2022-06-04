@@ -1,10 +1,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 
-import type { Asset } from "./Asset";
+import type { ListAsset } from "./ListAsset";
 import type { Pagination } from "./Pagination";
 
 export type ListAssetsResponse = {
-  assets: Array<Asset>;
+  assets: Array<ListAsset>;
   pagination: Pagination;
 };

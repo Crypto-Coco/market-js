@@ -1,21 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 
-import type { SimpleCategory } from "./SimpleCategory";
-
-export type Collection = {
-  /**
-   * データ作成日時を表すtimestamp
-   */
-  createdAt: number;
-  /**
-   * データ更新日時を表すtimestamp
-   */
-  updatedAt: number;
-  /**
-   * UUID
-   */
-  id: string;
+export type CreateCollectionRequestBody = {
   slug: string;
   name: string;
   description: string;
@@ -32,6 +18,5 @@ export type Collection = {
   devBuyerFeeBasisPoints: number;
   devSellerFeeBasisPoints: number;
   chainId: number;
-  category: SimpleCategory;
-  assets: Array<string>;
+  categoryId: string;
 };

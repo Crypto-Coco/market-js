@@ -15,11 +15,35 @@ export type User = {
    */
   id: string;
   /**
-   * 表示名
+   * ユーザーネーム(デフォルトはアドレス)
    */
-  displayName: string;
+  username: string;
   /**
    * Emailアドレス
    */
   email: string;
+  /**
+   * 説明
+   */
+  description: string;
+  /**
+   * InstagramのURL
+   */
+  twitterUrl?: string;
+  /**
+   * InstagramのURL
+   */
+  instagramUrl?: string;
+  /**
+   * FacebookのURL
+   */
+  facebookUrl?: string;
+  /**
+   * プロフィール画像のURL
+   */
+  profileImageUrl?: string;
+  /**
+   * プロフィール画像のURL
+   */
+  coverImageUrl?: string;
 };
