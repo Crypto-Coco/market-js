@@ -891,7 +891,7 @@ export class OpenSeaPort {
       ...signature,
     };
 
-    console.log("bauvbrua", orderWithSignature);
+    console.log("orderWithSignature", orderWithSignature);
 
     return this.validateAndPostOrder(orderWithSignature);
   }
@@ -974,6 +974,9 @@ export class OpenSeaPort {
       extraBountyBasisPoints,
       buyerAddress: buyerAddress || NULL_ADDRESS,
     });
+
+    console.log(dummyOrder);
+
     await this._sellOrderValidationAndApprovals({
       order: dummyOrder,
       accountAddress,
@@ -3543,6 +3546,10 @@ export class OpenSeaPort {
     if (!proxyAddress) {
       proxyAddress = await this._initializeProxy(accountAddress);
     }
+    console.log("schemaNames", schemaNames);
+    console.log("wyAssets", wyAssets);
+    console.log("proxyAddress", proxyAddress);
+
     const contractsWithApproveAll: Set<string> = new Set();
 
     return Promise.all(

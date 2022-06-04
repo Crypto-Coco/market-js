@@ -3,9 +3,9 @@
 
 export type CreateUserRequestBody = {
   /**
-   * 表示名
+   * ユーザーネーム
    */
-  displayName: string;
+  username: string;
   /**
    * Emailアドレス
    */

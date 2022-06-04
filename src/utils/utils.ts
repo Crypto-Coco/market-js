@@ -392,11 +392,12 @@ export const tokenFromJSON = (token: any): OpenSeaFungibleToken => {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const orderFromJSON = (order: any): Order => {
-  const createdDate = new Date(`${order.createdAt}Z`);
+  const createdDate = new Date(order.createdAt * 1000);
 
   const fromJSON: Order = {
-    hash: order.orderHash || order.hash,
-    cancelledOrFinalized: order.cancelled || order.finalized,
+    // TODO: saltをハッシュに変更
+    hash: order.salt || order.salt,
+    cancelledOrFinalized: order.cancelledOrFinalized,
     markedInvalid: order.markedInvalid,
     metadata: order.metadata,
     quantity: new BigNumber(order.quantity || 1),
@@ -414,7 +415,7 @@ export const orderFromJSON = (order: any): Order => {
     waitingForBestCounterOrder: order.feeRecipientAddress == NULL_ADDRESS,
     feeMethod: order.feeMethod,
     feeRecipientAccount: order.feeRecipient,
-    feeRecipient: order.feeRecipientAddress,
+    feeRecipient: order.feeRecipient,
     side: order.side,
     saleKind: order.saleKind,
     target: order.target,
@@ -423,7 +424,7 @@ export const orderFromJSON = (order: any): Order => {
     replacementPattern: order.replacementPattern,
     staticTarget: order.staticTarget,
     staticExtradata: order.staticExtradata,
-    paymentToken: order.paymentToken,
+    paymentToken: order.paymentTokenAddress,
     basePrice: new BigNumber(order.basePrice),
     extra: new BigNumber(order.extra),
     currentBounty: new BigNumber(order.currentBounty || 0),
@@ -488,6 +489,7 @@ export const orderToJSON = (order: Order): OrderJSON => {
     listingTime: order.listingTime.toString(),
     expirationTime: order.expirationTime.toString(),
     salt: order.salt.toString(),
+    waitingForBestCounterOrder: order.waitingForBestCounterOrder,
 
     metadata: order.metadata,
 

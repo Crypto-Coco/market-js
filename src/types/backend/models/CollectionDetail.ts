@@ -1,9 +1,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 
-import type { SimpleCategory } from "./SimpleCategory";
-
-export type Collection = {
+export type CollectionDetail = {
   /**
    * データ作成日時を表すtimestamp
    */
@@ -21,10 +19,10 @@ export type Collection = {
   description: string;
   imageUrl: string;
   largeImageUrl: string;
-  twitterUrl?: string;
-  discordUrl?: string;
-  instagramUrl?: string;
-  websiteUrl?: string;
+  twitterUrl: string;
+  discordUrl: string;
+  instagramUrl: string;
+  websiteUrl: string;
   hidden: boolean;
   payoutAddress: string;
   buyerFeeBasisPoints: number;
@@ -32,6 +30,5 @@ export type Collection = {
   devBuyerFeeBasisPoints: number;
   devSellerFeeBasisPoints: number;
   chainId: number;
-  category: SimpleCategory;
   assets: Array<string>;
 };

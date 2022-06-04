@@ -79,6 +79,7 @@ export class MarketAPI {
         listingTime: Number(order.listingTime),
         expirationTime: Number(order.expirationTime),
         quantity: Number(order.quantity),
+        waitingForBestCounterOrder: order.waitingForBestCounterOrder ?? false,
       });
     } catch (error) {
       _throwOrContinue(error, retries);
@@ -134,23 +135,14 @@ export class MarketAPI {
    *  on the `OrderJSON` type is supported
    */
   public async getOrder(query: OrderQuery): Promise<Order> {
-    const result = await this.get(`${ORDERBOOK_PATH}/orders/`, {
-      limit: 1,
-      ...query,
-    });
-
-    let orderJSON;
-    if (ORDERBOOK_VERSION == 0) {
-      const json = result as OrderJSON[];
-      orderJSON = json[0];
-    } else {
-      const json = result as OrderbookResponse;
-      orderJSON = json.orders[0];
-    }
-    if (!orderJSON) {
+    const res = await this.api.orderService.orderControllerGet(
+      query.salt || ""
+    );
+    console.log("getOrder", res.order);
+    if (!res.order) {
       throw new Error(`Not found: no matching order found`);
     }
-    return orderFromJSON(orderJSON);
+    return orderFromJSON(res.order);
   }
 
   /**
@@ -204,7 +196,7 @@ export class MarketAPI {
   ): Promise<OpenSeaAsset> {
     let asset;
     try {
-      const res = await this.api.assetService.assetControllerGet(
+      const res = await this.api.assetService.assetControllerGetForSdk(
         tokenAddress,
         String(tokenId)
       );

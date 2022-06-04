@@ -8,6 +8,7 @@ import { FetchHttpRequest } from "./core/FetchHttpRequest";
 import { AssetContractServiceService } from "./services/AssetContractServiceService";
 import { AssetServiceService } from "./services/AssetServiceService";
 import { AuthServiceService } from "./services/AuthServiceService";
+import { CollectionServiceService } from "./services/CollectionServiceService";
 import { FunsibleTokenControllerService } from "./services/FunsibleTokenControllerService";
 import { OrderServiceService } from "./services/OrderServiceService";
 import { PingService } from "./services/PingService";
@@ -19,6 +20,7 @@ export class MarketApi {
   public readonly assetContractService: AssetContractServiceService;
   public readonly assetService: AssetServiceService;
   public readonly authService: AuthServiceService;
+  public readonly collectionService: CollectionServiceService;
   public readonly funsibleTokenController: FunsibleTokenControllerService;
   public readonly orderService: OrderServiceService;
   public readonly ping: PingService;
@@ -45,6 +47,7 @@ export class MarketApi {
     this.assetContractService = new AssetContractServiceService(this.request);
     this.assetService = new AssetServiceService(this.request);
     this.authService = new AuthServiceService(this.request);
+    this.collectionService = new CollectionServiceService(this.request);
     this.funsibleTokenController = new FunsibleTokenControllerService(
       this.request
     );

@@ -5,9 +5,10 @@
 import type { AssetContract } from "./AssetContract";
 import type { Collection } from "./Collection";
 import type { Order } from "./Order";
+import type { OwnerHistory } from "./OwnerHistory";
 import type { User } from "./User";
 
-export type Asset = {
+export type AssetDetail = {
   /**
    * データ作成日時を表すtimestamp
    */
@@ -29,10 +30,6 @@ export type Asset = {
    */
   name: string;
   /**
-   * メタデータURL
-   */
-  metadataUrl: string;
-  /**
    * 詳細
    */
   description: string;
@@ -41,25 +38,9 @@ export type Asset = {
    */
   backgroundColor: string;
   /**
-   * プリセールフラグ
-   */
-  isPresale: boolean;
-  /**
    * アセット画像URL
    */
   imageUrl: string;
-  /**
-   * プレビュー画像URL
-   */
-  imagePreviewUrl: string;
-  /**
-   * オリジナル画像URL
-   */
-  imageUrlOriginal: string;
-  /**
-   * サムネイルURL
-   */
-  thumbnailUrl: string;
   /**
    * 外部リンク
    */
@@ -69,43 +50,27 @@ export type Asset = {
    */
   traits: any;
   /**
-   * セール回数
-   */
-  numSales: number;
-  /**
-   * ラストセールUnixTime
-   */
-  lastSale: number;
-  /**
-   * トランスファー手数料
-   */
-  transferFee: number;
-  /**
-   * ピックアップフラグ
-   */
-  isPickup: boolean;
-  /**
    * アセットのコントラクト
    */
   assetContract: AssetContract;
+  /**
+   * 現在の売り注文
+   */
+  sellOrder?: Order;
   /**
    * コレクション
    */
   collection: Collection;
   /**
-   * 買い注文一覧
-   */
-  buyOrders: Array<Order>;
-  /**
-   * 売り注文一覧
-   */
-  sellOrders: Array<Order>;
-  /**
-   * 注文一覧
-   */
-  orders: Array<Order>;
-  /**
    * クリエーター
    */
   creator: User;
+  /**
+   * 現在のオーナー
+   */
+  currentOwnerHistory: OwnerHistory;
+  /**
+   * オーナー一覧
+   */
+  ownerHistories: Array<OwnerHistory>;
 };
